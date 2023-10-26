@@ -1,0 +1,212 @@
+package snake_game;
+
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
+
+import javax.swing.JFrame;
+
+public class SnakeGame extends JFrame {
+	
+	public static boolean gameOver=false;
+	public static int width=20;
+	public static int height=16;
+	public static int score=0;
+	public static char dir='0';
+	
+	public SnakeGame(){
+		
+		this.setTitle("Snake Game ");
+		this.setLayout(null);
+		this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+		
+		this.setSize(400,100);
+		this.addKeyListener(new KeyAdapter() {
+			
+			public void keyPressed(KeyEvent e) {
+				dir=e.getKeyChar();
+			}
+		});
+		
+		this.setVisible(true);
+		
+	}
+
+	public static void main(String[] args) throws InterruptedException, IOException {
+		// TODO Auto-generated method stub
+		new SnakeGame();
+		
+		Snake s=new Snake(width,height);
+		Board b=new Board(width,height);
+		Food f=new Food(width,height);
+		
+		while(!gameOver) {
+			
+			clearScreen();
+			update(s,b,f,dir,width,height);
+			draw(s,b,f,gameOver);
+			
+		}
+
+	}
+
+
+
+	private static void update(Snake s, Board b, Food f, char dir, int width, int height) {
+		// TODO Auto-generated method stub
+		if(s.L>0) {
+			
+			//swapping new head position and tails position
+			for(int i=s.L-1;i>=1;i--) {
+				
+				s.tailX[i]=s.tailX[i-1];
+				s.tailY[i]=s.tailY[i-1];
+			}
+			
+			s.tailX[0]=s.x;
+			s.tailY[0]=s.y;
+		}
+		
+		switch(dir) {
+		
+		case 'a':s.x--;break;
+		case 'd':s.x++;break;
+		case 'w':s.y--;break;
+		case 's':s.y++;break;
+		
+		}
+		
+		
+		if(s.x==f.x && s.y==f.y) {
+			
+			s.eatFood();
+			f.reset(width, height, s);
+			score=score+10;
+			
+		}
+		
+	}
+
+
+
+	private static void draw(Snake s, Board b, Food f, boolean gameOver) {
+		// top bar
+		for(int i=0;i<width+2;i++)
+		    System.out.printf("#");
+		System.out.printf("\n");
+		
+		//body drawing
+		for(int i=0;i<height;i++) {
+			for(int j=0;j<width+2;j++) {
+				
+				if(j==0) {
+					System.out.print("#");
+				}
+				else if(j==width+1) {
+					System.out.print("#");
+				}
+				else if(s.x==j && s.y==i) {
+					System.out.print("Q");
+				}
+				else if(f.x==j && f.y==i) {
+					System.out.print("F");
+				}
+				else {
+					
+					boolean isTail=false;
+					
+					for(int k=0;k<s.L;k++) {
+						if(s.tailX[k]==j && s.tailY[k]==i) {
+							System.out.print("O");
+							isTail=true;
+						}
+					}
+					
+					if(!isTail) {
+						System.out.print(" ");
+					}
+					
+				}
+				
+			}
+			System.out.println();
+			
+		}
+		
+		
+		
+		// bottom bar
+		for(int i=0;i<width+2;i++)
+		     System.out.printf("#");
+		System.out.printf("\n");
+		
+		System.out.println(" ================  ");
+		System.out.println("Score :"+score);
+		System.out.println("=====================");
+		
+		
+		
+	}
+
+
+
+	private static void clearScreen() throws InterruptedException, IOException {
+		// TODO Auto-generated method stub
+		new ProcessBuilder("cmd","/c","cls").inheritIO().start().waitFor();
+	}
+
+}
+
+class Snake{
+	
+	int x;
+	int y;
+	int L;
+	int[] tailX,tailY;
+	
+	public Snake(int width,int height) {
+		this.x=width/2;
+		this.y=height/2;
+		this.L=0;
+		this.tailX=new int[width*height];
+		this.tailY=new int[width*height];
+	}
+	
+	public void eatFood() {
+		this.L++;
+	}
+	
+}
+
+class Board{
+	int width;
+	int height;
+	public Board(int width,int height) {
+		this.width=width;
+		this.height=height;
+	}
+	
+}
+
+class Food{
+	int x;
+	int y;
+	
+	public Food(int width,int height) {
+		this.x=(int) (Math.random() * width+1);
+		this.y=(int) (Math.random() * height);
+		
+	}
+	
+	public void reset(int width,int height,Snake s) {
+		this.x=(int) (Math.random()*width+1);
+		this.y=(int) (Math.random()*height);
+		
+		if ((this.x == s.x) && (this.y == s.y)) {
+			s.eatFood();
+			reset(width, height, s);
+		}
+		
+	}
+	
+}
